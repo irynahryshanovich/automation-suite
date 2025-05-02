@@ -1,5 +1,6 @@
 # dependencies
 /node_modules
+/frontend/build/
 
 .DS_Store
 .env.development
