@@ -1,0 +1,28 @@
+# Backend .gitignore
+
+# Database files
+*.db
+*.sqlite3
+
+# Virtual environment
+venv/
+
+# Environment variables
+.env
+.env.local
+
+# Testing and coverage
+.pytest_cache/
+
+# IDE files
+.vscode/
+
+# Logs
+*.log
+logs/
+
+# OS generated files
+.DS_Store
+
+# Compiled Python files
+__pycache__/
