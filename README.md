@@ -56,6 +56,7 @@ cd frontend
 2. Install dependencies:
 
 npm install
+npm run build
 
 3. Start the development server:
 npm start
