@@ -3,6 +3,7 @@ from typing import Dict, Any, List
 
 from app.services.weather_service import fetch_weather_data
 from app.services.sports_service import fetch_sports_data
+from app.config import settings
 from app.database import add_log, update_state, get_states
 
 
@@ -14,8 +15,8 @@ def perform_automation(city=None):
     3. Perform actions based on the data
     4. Return the results
     """
-    # Fetch data - always use Seattle
-    weather_data = fetch_weather_data("Seattle")
+    effective_city = city or settings.DEFAULT_CITY
+    weather_data = fetch_weather_data(effective_city)
     sports_data = fetch_sports_data()
 
     # Log raw data
@@ -54,8 +55,9 @@ def perform_actions(weather_data: Dict[str, Any], sports_data: Dict[str, Any]) -
     # Action based on sports scores
     if "events" in sports_data and sports_data["events"]:
         event = sports_data["events"][0]
-        home_score = int(event.get("intHomeScore", 0))
-        away_score = int(event.get("intAwayScore", 0))
+        # 0 if API returns incomplete/in-progress game data
+        home_score = int(event.get("intHomeScore") or 0)
+        away_score = int(event.get("intAwayScore") or 0)
 
         if home_score > away_score:
             update_state("Facebook", "active")
