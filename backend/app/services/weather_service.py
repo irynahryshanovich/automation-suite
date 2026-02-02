@@ -1,6 +1,9 @@
-import requests
 import random
 from datetime import datetime
+
+import requests
+
+from app.config import settings
 from app.database import add_log
 
 
@@ -9,8 +12,7 @@ def fetch_weather_data(city=None):
     Fetch weather data from NOAA's National Weather Service API
     Falls back to mock data if API request fails
     """
-    # Always use Seattle, ignore any city parameter
-    city = "Seattle"
+    effective_city = city or settings.DEFAULT_CITY
 
     try:
         # NOAA API doesn't use API keys but requires a user-agent with contact info
@@ -19,20 +21,18 @@ def fetch_weather_data(city=None):
             'Accept': 'application/geo+json'
         }
 
-        # Hard-coded coordinates for Seattle
-        lat = 47.6062
-        lon = -122.3321
+        lat, lon = settings.DEFAULT_COORDINATES
 
         # Step 1: Get the grid endpoint for the location
         points_url = f"https://api.weather.gov/points/{lat},{lon}"
-        points_response = requests.get(points_url, headers=headers)
+        points_response = requests.get(points_url, headers=headers, timeout=10)
         points_response.raise_for_status()
 
         points_data = points_response.json()
         forecast_url = points_data['properties']['forecast']
 
         # Step 2: Get the actual forecast
-        forecast_response = requests.get(forecast_url, headers=headers)
+        forecast_response = requests.get(forecast_url, headers=headers, timeout=10)
         forecast_response.raise_for_status()
 
         forecast_data = forecast_response.json()
@@ -55,14 +55,16 @@ def fetch_weather_data(city=None):
                     "description": current_period['detailedForecast']
                 }
             ],
-            "name": city,
+            "name": effective_city,
             "dt": int(datetime.now().timestamp())
         }
 
         return weather_data
-    except Exception as e:
-        # Log the error and fall back to mock data
-        error_data = {"error": str(e), "message": "Failed to fetch NOAA weather data, falling back to mock data"}
+    except requests.RequestException as error:
+        error_data = {
+            "error": str(error),
+            "message": "Failed to fetch NOAA weather data, falling back to mock data"
+        }
         add_log("error", error_data)
 
         # Generate mock data as fallback
@@ -81,7 +83,7 @@ def fetch_weather_data(city=None):
                     "description": "Generated mock weather data (NOAA API failed)"
                 }
             ],
-            "name": city,
+            "name": effective_city,
             "dt": int(datetime.now().timestamp())
         }
         return weather_data
