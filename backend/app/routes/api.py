@@ -1,5 +1,7 @@
-from fastapi import APIRouter, Query, HTTPException, Request
+import json
 from typing import List, Dict, Optional
+
+from fastapi import APIRouter, Query, HTTPException, Request
 
 from app.models.state import StateUpdate
 from app.database import get_logs, get_states, update_state, delete_all_logs
@@ -37,13 +39,15 @@ async def update_target_state(target: str, state_update: StateUpdate):
 @router.post("/run", response_model=Dict)
 async def run_automation(request: Request):
     """Manually trigger automation job with optional city"""
+    city = None
     try:
         data = await request.json()
+    except Exception as error:
+        print(f"Error parsing request: {str(error)}")
+        data = None
+
+    if isinstance(data, dict):
         city = data.get("city")
-        print(f"Received city parameter: {city}")  # Add logging
-    except Exception as e:
-        print(f"Error parsing request: {str(e)}")
-        city = None
 
     result = perform_automation(city)
     return result
