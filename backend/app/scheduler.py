@@ -35,13 +35,14 @@ def init_scheduler():
     except Exception as e:
         print(f"Error initializing scheduler: {e}")
 
-def modify_job_cadence(minutes: int):
+def modify_job_cadence(minutes: int) -> dict:
     """Modify the cadence of the automation job"""
     try:
         scheduler.remove_job("automation_job")
     except JobLookupError:
         pass
 
+    settings.AUTOMATION_CADENCE = minutes
     scheduler.add_job(
         automation_job,
         IntervalTrigger(minutes=minutes),
