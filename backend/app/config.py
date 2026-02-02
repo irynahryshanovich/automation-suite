@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     # Automation settings
     AUTOMATION_CADENCE: int = 30  # minutes
     DEFAULT_CITY: str = "Seattle"
+    DEFAULT_COORDINATES = (47.6062, -122.3321)
 
     # Social targets
     SOCIAL_TARGETS: list = ["Twitter", "Facebook", "Instagram"]
