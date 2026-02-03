@@ -49,7 +49,7 @@ async def run_automation(request: Request):
     if isinstance(data, dict):
         city = data.get("city")
 
-    result = perform_automation(city)
+    result = perform_automation(city, source="manual")
     return result
 
 @router.put("/cadence", response_model=Dict)
