@@ -20,7 +20,7 @@ function App() {
       <footer>
         <div className="container">
           <p>
-            &copy; 2025 Automation Suite. Designed and developed by Iryna
+            &copy; 2026 Automation Suite. Designed and developed by Iryna
             Hryshanovich
           </p>
         </div>
