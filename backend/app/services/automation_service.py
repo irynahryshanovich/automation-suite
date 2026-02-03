@@ -7,13 +7,17 @@ from app.config import settings
 from app.database import add_log, update_state, get_states
 
 
-def perform_automation(city=None):
+def perform_automation(city=None, source="automation"):
     """
     Perform the main automation routine:
     1. Fetch weather and sports data
     2. Log the data
     3. Perform actions based on the data
     4. Return the results
+    
+    Args:
+        city: City name for weather data (optional)
+        source: Source of the automation trigger ("manual" or "automation")
     """
     effective_city = city or settings.DEFAULT_CITY
     weather_data = fetch_weather_data(effective_city)
@@ -28,7 +32,7 @@ def perform_automation(city=None):
 
     # Log actions
     for action in actions:
-        add_log("automation", {"message": action}, action)
+        add_log(source, {"message": action}, action)
 
     return {
         "timestamp": datetime.now().isoformat(),
