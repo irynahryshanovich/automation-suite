@@ -1,9 +1,8 @@
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, DateTime
-from sqlalchemy.ext.declarative import declarative_base
 from pydantic import BaseModel
 
-Base = declarative_base()
+from app.models.base import Base
 
 class StateModel(Base):
     """SQLAlchemy model for state entries"""

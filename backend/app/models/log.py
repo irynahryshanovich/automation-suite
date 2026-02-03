@@ -1,10 +1,9 @@
 from datetime import datetime
 from typing import Dict, Any
-from sqlalchemy import Column, Integer, String, Text, DateTime, Time
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, String, Text, DateTime
 from pydantic import BaseModel
 
-Base = declarative_base()
+from app.models.base import Base
 
 class LogModel(Base):
     """SQLAlchemy model for log entries"""
