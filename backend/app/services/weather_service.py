@@ -12,7 +12,13 @@ def fetch_weather_data(city=None):
     Fetch weather data from NOAA's National Weather Service API
     Falls back to mock data if API request fails
     """
-    effective_city = city or settings.DEFAULT_CITY
+    # Validate city - use default if None or not in available cities
+    if city and city in settings.CITY_COORDINATES:
+        effective_city = city
+    else:
+        effective_city = settings.DEFAULT_CITY
+    
+    coordinates = settings.CITY_COORDINATES[effective_city]
 
     try:
         # NOAA API doesn't use API keys but requires a user-agent with contact info
@@ -21,7 +27,7 @@ def fetch_weather_data(city=None):
             'Accept': 'application/geo+json'
         }
 
-        lat, lon = settings.DEFAULT_COORDINATES
+        lat, lon = coordinates
 
         # Step 1: Get the grid endpoint for the location
         points_url = f"https://api.weather.gov/points/{lat},{lon}"
