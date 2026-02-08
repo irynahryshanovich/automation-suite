@@ -1,30 +1,39 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 
 // Get API base URL from environment variable or use default
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000/api";
 
+const normalizeLogData = (logEntry) => {
+  if (!logEntry || !logEntry.data) {
+    return null;
+  }
+
+  if (typeof logEntry.data === "string") {
+    try {
+      return JSON.parse(logEntry.data);
+    } catch (error) {
+      return null;
+    }
+  }
+
+  return logEntry.data;
+};
+
 const Dashboard = () => {
   // States
   const [isLoading, setIsLoading] = useState(false);
-  const [lastRunTime, setLastRunTime] = useState("Never");
   const [cadence, setCadence] = useState(30);
+  const [selectedCity, setSelectedCity] = useState("Seattle");
+  const [availableCities, setAvailableCities] = useState([]);
+  const [lastRunTime, setLastRunTime] = useState("Never");
   const [weatherData, setWeatherData] = useState(null);
   const [sportsData, setSportsData] = useState(null);
   const [logs, setLogs] = useState([]);
   const [targets, setTargets] = useState([]);
 
-  // Fetch data on component mount
-  useEffect(() => {
-    fetchData();
-
-    // Refresh data every minute
-    const intervalId = setInterval(fetchData, 60000);
-    return () => clearInterval(intervalId);
-  }, []);
-
   // Fetch all required data
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       // Fetch logs
       const logsResponse = await axios.get(`${API_URL}/logs`);
@@ -33,6 +42,13 @@ const Dashboard = () => {
       // Fetch social targets state
       const stateResponse = await axios.get(`${API_URL}/state`);
       setTargets(stateResponse.data);
+
+      // Fetch settings including available cities
+      const settingsResponse = await axios.get(`${API_URL}/settings`);
+      if (settingsResponse.data.available_cities) {
+        setAvailableCities(settingsResponse.data.available_cities);
+        setSelectedCity(settingsResponse.data.city);
+      }
 
       // Find latest weather and sports data
       const weatherLog = logsResponse.data.find(
@@ -43,23 +59,32 @@ const Dashboard = () => {
       );
 
       if (weatherLog) {
-        setWeatherData(JSON.parse(weatherLog.data));
+        setWeatherData(normalizeLogData(weatherLog));
         setLastRunTime(new Date(weatherLog.timestamp).toLocaleString());
       }
 
       if (sportsLog) {
-        setSportsData(JSON.parse(sportsLog.data));
+        setSportsData(normalizeLogData(sportsLog));
       }
     } catch (error) {
       console.error("Error fetching data:", error);
     }
-  };
+  }, []);
+
+  // Fetch data on component mount
+  useEffect(() => {
+    fetchData();
+
+    // Refresh data every minute
+    const intervalId = setInterval(fetchData, 60000);
+    return () => clearInterval(intervalId);
+  }, [fetchData]);
 
   // Run automation manually
   const handleRunNow = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.post(`${API_URL}/run`);
+      const response = await axios.post(`${API_URL}/run`, { city: selectedCity });
 
       // Update state with new data
       setWeatherData(response.data.weather);
@@ -154,15 +179,25 @@ const Dashboard = () => {
       <div className="card">
         <h2>Controls</h2>
         <div>
-          <p>Last run: {lastRunTime}</p>
-
-          <button
-            className="btn primary"
-            onClick={handleRunNow}
-            disabled={isLoading}
-          >
-            {isLoading ? "Running..." : "Run Now"}
-          </button>
+          <div style={{ marginBottom: "1rem" }}>
+            <label htmlFor="city">City: </label>
+            <select
+              id="city"
+              value={selectedCity}
+              onChange={(e) => setSelectedCity(e.target.value)}
+              style={{
+                margin: "0 0.5rem",
+                padding: "0.25rem",
+                minWidth: "150px",
+              }}
+            >
+              {availableCities.map((city) => (
+                <option key={city} value={city}>
+                  {city}
+                </option>
+              ))}
+            </select>
+          </div>
 
           <div style={{ marginTop: "1rem" }}>
             <label htmlFor="cadence">Run every</label>
@@ -182,6 +217,16 @@ const Dashboard = () => {
               style={{ marginLeft: "0.5rem" }}
             >
               Update
+            </button>
+
+            <p style={{ marginBottom: "1rem" }}>Last run: {lastRunTime}</p>
+
+            <button
+              className="btn primary"
+              onClick={handleRunNow}
+              disabled={isLoading}
+            >
+              {isLoading ? "Running..." : "Run Now"}
             </button>
           </div>
         </div>
@@ -266,7 +311,7 @@ const Dashboard = () => {
         {sportsData && sportsData.events && sportsData.events.length > 0 ? (
           <div>
             <h3 style={{ textAlign: "center", marginBottom: "1rem" }}>
-              {sportsData.events[0].strEvent || "Unknown Event"}
+              Match Result
             </h3>
 
             <div
@@ -277,18 +322,28 @@ const Dashboard = () => {
               }}
             >
               <div style={{ textAlign: "right", marginRight: "1rem" }}>
-                <p>{sportsData.events[0].strHomeTeam || "Home"}</p>
+                <p style={{ fontSize: "1rem" }}>
+                  Away:{" "}
+                  <span style={{ fontWeight: "bold" }}>
+                    {sportsData.events[0].strAwayTeam || "Away"}
+                  </span>
+                </p>
                 <p style={{ fontWeight: "bold", fontSize: "1.5rem" }}>
-                  {sportsData.events[0].intHomeScore || "0"}
+                  {sportsData.events[0].intAwayScore || "0"}
                 </p>
               </div>
               <div style={{ textAlign: "center", alignSelf: "center" }}>
-                <p style={{ fontSize: "1.5rem" }}>-</p>
+                <p style={{ fontSize: "1.5rem", marginTop: "1.2rem" }}>-</p>
               </div>
               <div style={{ textAlign: "left", marginLeft: "1rem" }}>
-                <p>{sportsData.events[0].strAwayTeam || "Away"}</p>
+                <p style={{ fontSize: "1rem" }}>
+                  Home:{" "}
+                  <span style={{ fontWeight: "bold" }}>
+                    {sportsData.events[0].strHomeTeam || "Home"}
+                  </span>
+                </p>
                 <p style={{ fontWeight: "bold", fontSize: "1.5rem" }}>
-                  {sportsData.events[0].intAwayScore || "0"}
+                  {sportsData.events[0].intHomeScore || "0"}
                 </p>
               </div>
             </div>
