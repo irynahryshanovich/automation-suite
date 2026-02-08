@@ -20,8 +20,8 @@ class Settings(BaseSettings):
 
     print(f"Database URL: {DATABASE_URL}")
 
-    # API keys, SPORTS_API_KEY='123'
-    WEATHER_API_KEY: str = os.getenv("WEATHER_API_KEY", "demo_key")
+    # API keys and NOAA contact info,SPORTS_API_KEY='123'
+    WEATHER_API_KEY: list = os.getenv("WEATHER_API_KEY", ["Automation Suite", "contact@example.com"])
     SPORTS_API_KEY: str = os.getenv("SPORTS_API_KEY", "demo_key")
 
     # Automation settings

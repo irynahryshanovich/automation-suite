@@ -2,28 +2,61 @@ import random
 from datetime import datetime
 
 import requests
+from requests import RequestException
 
 from app.config import settings
 from app.database import add_log
 
 
+def convert_to_celsius(fahrenheit):
+    """Convert Fahrenheit to Celsius"""
+    return round((fahrenheit - 32) * 5/9, 1)
+
+
+def convert_to_fahrenheit(celsius):
+    """Convert Celsius to Fahrenheit"""
+    return round((celsius * 9/5) + 32, 1)
+
+
+def build_mock_weather_data():
+    celsius_temp = round(random.uniform(15.0, 35.0), 1)
+    fahrenheit_temp = convert_to_fahrenheit(celsius_temp)
+
+    return {
+        "main": {
+            "temp": celsius_temp,  # Main temp as Celsius
+            "temp_c": celsius_temp,  # Explicit Celsius
+            "temp_f": fahrenheit_temp,  # Explicit Fahrenheit
+        },
+        "weather": [
+            {
+                "main": random.choice(["Clear", "Clouds", "Rain", "Snow"]),
+                "description": "Generated mock weather data"
+            }
+        ],
+        "name": settings.DEFAULT_CITY,
+        "dt": int(datetime.now().timestamp())
+    }
+
+
+def get_validated_city(city):
+    if city and city in settings.CITY_COORDINATES:
+        return city
+    return settings.DEFAULT_CITY
+
+
 def fetch_weather_data(city=None):
     """
     Fetch weather data from NOAA's National Weather Service API
-    Falls back to mock data if API request fails
+    Returns mock data if API request fails
     """
-    # Validate city - use default if None or not in available cities
-    if city and city in settings.CITY_COORDINATES:
-        effective_city = city
-    else:
-        effective_city = settings.DEFAULT_CITY
-    
+    effective_city = get_validated_city(city)
     coordinates = settings.CITY_COORDINATES[effective_city]
+    app_name, contact_email = settings.WEATHER_API_KEY
 
     try:
-        # NOAA API doesn't use API keys but requires a user-agent with contact info
         headers = {
-            'User-Agent': '(Automation Suite, contact@example.com)',
+            'User-Agent': f'({app_name}, {contact_email})',
             'Accept': 'application/geo+json'
         }
 
@@ -48,8 +81,7 @@ def fetch_weather_data(city=None):
         fahrenheit_temp = current_period['temperature']
         celsius_temp = convert_to_celsius(fahrenheit_temp)
 
-        # Create a response with both temperature units
-        weather_data = {
+        return {
             "main": {
                 "temp": celsius_temp,  # Keep the main temp as Celsius for compatibility
                 "temp_c": celsius_temp,  # Explicit Celsius
@@ -64,40 +96,7 @@ def fetch_weather_data(city=None):
             "name": effective_city,
             "dt": int(datetime.now().timestamp())
         }
-
-        return weather_data
-    except requests.RequestException as error:
-        error_data = {
-            "error": str(error),
-            "message": "Failed to fetch NOAA weather data, falling back to mock data"
-        }
+    except RequestException as error:
+        error_data = {"error": str(error), "message": "Failed to fetch NOAA weather data"}
         add_log("error", error_data)
-
-        # Generate mock data as fallback
-        celsius_temp = round(random.uniform(15.0, 35.0), 1)
-        fahrenheit_temp = convert_to_fahrenheit(celsius_temp)
-
-        weather_data = {
-            "main": {
-                "temp": celsius_temp,  # Main temp as Celsius
-                "temp_c": celsius_temp,  # Explicit Celsius
-                "temp_f": fahrenheit_temp,  # Explicit Fahrenheit
-            },
-            "weather": [
-                {
-                    "main": random.choice(["Clear", "Clouds", "Rain", "Snow"]),
-                    "description": "Generated mock weather data (NOAA API failed)"
-                }
-            ],
-            "name": effective_city,
-            "dt": int(datetime.now().timestamp())
-        }
-        return weather_data
-
-def convert_to_celsius(fahrenheit):
-    """Convert Fahrenheit to Celsius"""
-    return round((fahrenheit - 32) * 5/9, 1)
-
-def convert_to_fahrenheit(celsius):
-    """Convert Celsius to Fahrenheit"""
-    return round((celsius * 9/5) + 32, 1)
+        return build_mock_weather_data()
