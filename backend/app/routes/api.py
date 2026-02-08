@@ -64,6 +64,7 @@ async def get_settings():
         "app_name": settings.APP_NAME,
         "cadence": settings.AUTOMATION_CADENCE,
         "city": settings.DEFAULT_CITY,
+        "available_cities": settings.AVAILABLE_CITIES,
         "targets": settings.SOCIAL_TARGETS
     }
 
