@@ -142,6 +142,9 @@ const Dashboard = () => {
             : t
         )
       );
+
+      const logsResponse = await axios.get(`${API_URL}/logs`);
+      setLogs(logsResponse.data);
     } catch (error) {
       console.error(`Error toggling state for ${target}:`, error);
       alert(`Failed to update ${target} state`);
