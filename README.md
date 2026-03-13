@@ -41,8 +41,7 @@ The system currently implements the following automation rules:
 ## Setup and Installation
 
 ### Prerequisites
-- Node.js 16+ and npm (for local frontend development)
-- Python 3.10+ (for local backend development)
+- Node.js 16+ and npm and Python 3.10+
 
 ### Local Development
 #### Backend
@@ -50,22 +49,24 @@ The system currently implements the following automation rules:
 cd backend
 
 2. Create a virtual environment:
-python -m venv venv
-source venv/bin/activate
+`python -m venv venv`
 
-3. Install dependencies:
-pip install -r requirements.txt
+`source venv/bin/activate`
 
-4. Run the application:
-uvicorn app.main:app --reload (or python run.py)
+4. Install dependencies:
+`pip install -r requirements.txt`
+
+5. Run the application:
+`uvicorn app.main:app --reload` (or python run.py)
 
 #### Frontend
 1. Go to the frontend directory:
-cd frontend
+`cd frontend`
 
 2. Install dependencies:
-npm install
-npm run build
+`npm install`
 
-3. Start the development server:
-npm start
+`npm run build`
+
+4. Start the development server:
+`npm start`
