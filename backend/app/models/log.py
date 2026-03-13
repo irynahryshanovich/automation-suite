@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Dict, Any
 from sqlalchemy import Column, Integer, String, Text, DateTime
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from app.models.base import Base
 
@@ -31,5 +31,4 @@ class Log(LogBase):
     id: int
     timestamp: datetime
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
