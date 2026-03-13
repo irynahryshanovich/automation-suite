@@ -1,24 +1,29 @@
 import os
-from pydantic import BaseSettings
+
+from pydantic import ConfigDict
+from pydantic_settings import BaseSettings
+
+# Go up two levels from current 'app' directory
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+
+# Define the path to the database folder and file
+DB_DIR = os.path.join(PROJECT_ROOT, "database")
+DB_PATH = os.path.join(DB_DIR, "automation.db")
+
+# Ensure the directory exists
+os.makedirs(DB_DIR, exist_ok=True)
+
+# Create the SQLite connection URL
+DATABASE_URL = f"sqlite:///{DB_PATH}"
+
 
 class Settings(BaseSettings):
     """Application settings"""
+    model_config = ConfigDict(env_file=".env")
+
     APP_NAME: str = "Automation Suite"
 
-    # Go up two levels from current 'app' directory
-    PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-
-    # Define the path to the database folder and file
-    DB_DIR = os.path.join(PROJECT_ROOT, "database")
-    DB_PATH = os.path.join(DB_DIR, "automation.db")
-
-    # Ensure the directory exists
-    os.makedirs(DB_DIR, exist_ok=True)
-
-    # Create the SQLite connection URL
-    DATABASE_URL = f"sqlite:///{DB_PATH}"
-
-    print(f"Database URL: {DATABASE_URL}")
+    DATABASE_URL: str = DATABASE_URL
 
     # API keys and NOAA contact info
     WEATHER_API_KEY: list = os.getenv("WEATHER_API_KEY", ["Automation Suite", "contact@example.com"])
@@ -50,7 +55,16 @@ class Settings(BaseSettings):
     # Social targets
     SOCIAL_TARGETS: list = ["Twitter", "Facebook", "Instagram"]
 
-    class Config:
-        env_file = ".env"
+    @property
+    def PROJECT_ROOT(self) -> str:
+        return PROJECT_ROOT
+
+    @property
+    def DB_DIR(self) -> str:
+        return DB_DIR
+
+    @property
+    def DB_PATH(self) -> str:
+        return DB_PATH
 
 settings = Settings()
