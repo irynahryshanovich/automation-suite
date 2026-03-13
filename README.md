@@ -1,28 +1,53 @@
 # Miniaturized Automation Suite
 
-Application that fetches data from external sources, performs actions based on defined rules, and presents the system state through a React-based UI.
+The app runs on a scheduled interval (default every 30 minutes, configurable from 5 min to 24 hours). 
+Each run:
+- Fetches current weather from NOAA and latest sports scores from TheSportsDB
+- Evaluates three rules against that data to decide whether to pause or activate ads on each social target
+- Updates the state of each target in the database
+- Logs every data fetch and every action taken
 
 ## Automation Rules
 
 The system currently implements the following automation rules:
 
-1. **Weather-based**: Pauses Twitter ads if temperature exceeds 30°C, activates them otherwise
-2. **Sports-based**: Activates Facebook ads if home team wins, pauses them otherwise
+1. **Weather-based**: Pauses Twitter ads when temperature exceeds 86°F, activates otherwise
+2. **Sports-based**: Activates Facebook ads if home team wins, pauses them on loss/tie
 3. **Time-based**: Activates Instagram ads during prime hours (8 AM - 8 PM), pauses them during off-hours
 
-## Features
+## Backend (Python/FastAPI):
+- REST endpoints — CRUD for state, logs, settings, cadence, and a manual run trigger
+- Pydantic models with enum validation for targets (Twitter/Facebook/Instagram) and statuses (active/paused)
+- SQLAlchemy ORM with SQLite for persistence (states and logs tables)
+- APScheduler runs automation on a configurable interval
+- Integrates with NOAA Weather API and TheSportsDB API, with mock fallbacks on failure
+- CORS origins configurable via environment variable for deployment flexibility
+- FastAPI lifespan context manager for clean startup/shutdown
 
-- **Backend API**: FastAPI-based REST API
-- **Data Ingestion**: Fetches weather and sports data from external APIs
-- **Automation Engine**: Performs actions based on input data
-- **React Frontend**: Responsive, component-based UI
-- **Scheduling**: Runs on a configurable cadence
+## Frontend (React):
+- Single-page dashboard: controls, target status toggles, weather/sports data display, automation rules reference, action logs
+- Polls backend every 60 seconds, plus immediate refresh on user actions
+
+## Testing (pytest):
+- 11 tests covering API endpoints, weather service, and sports service
+- Tests run against a temporary in-memory database so they never touch real data
+- External API calls are mocked to keep tests fast and deterministic
+
+## API Endpoints
+
+- `GET /api/logs` - Retrieve action logs
+- `GET /api/state` - Get current state of social targets
+- `PUT /api/state/{target}` - Update target state
+- `POST /api/run` - Manually trigger automation
+- `PUT /api/cadence` - Update automation cadence
+- `GET /api/settings` - Get current settings
+- `DELETE /api/logs` - Clear all logs from the database
 
 ## Setup and Installation
 
 ### Prerequisites
 - Node.js 16+ and npm (for local frontend development)
-- Python 3.9+ (for local backend development)
+- Python 3.10+ (for local backend development)
 
 ### Local Development
 
@@ -60,13 +85,3 @@ npm run build
 
 3. Start the development server:
 npm start
-
-## API Endpoints
-
-- `GET /api/logs` - Retrieve action logs
-- `GET /api/state` - Get current state of social targets
-- `PUT /api/state/{target}` - Update target state
-- `POST /api/run` - Manually trigger automation
-- `PUT /api/cadence` - Update automation cadence
-- `GET /api/settings` - Get current settings
-- `DELETE /api/logs` - Clear all logs from the database
