@@ -29,6 +29,9 @@ class Settings(BaseSettings):
     WEATHER_API_KEY: list = os.getenv("WEATHER_API_KEY", ["Automation Suite", "contact@example.com"])
     SPORTS_API_KEY: str = os.getenv("SPORTS_API_KEY", "demo_key")
 
+    # CORS allowed origins (comma-separated in .env, e.g. "http://ec2-ip:3000,https://myapp.com")
+    CORS_ORIGINS: list = ["*"]
+
     # Automation settings
     AUTOMATION_CADENCE: int = 30  # minutes
     DEFAULT_CITY: str = "Seattle"

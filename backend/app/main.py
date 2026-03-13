@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.routes.api import router as api_router
 from app.database import init_db
 from app.scheduler import init_scheduler, scheduler
+from app.config import settings
 
 
 @asynccontextmanager
@@ -30,7 +31,7 @@ app = FastAPI(
 # Configure CORS to allow requests from the React frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
