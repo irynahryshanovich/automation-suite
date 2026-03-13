@@ -1,11 +1,6 @@
 # Miniaturized Automation Suite
 
-The app runs on a scheduled interval (default every 30 minutes, configurable from 5 min to 24 hours). 
-Each run:
-- Fetches current weather from NOAA and latest sports scores from TheSportsDB
-- Evaluates three rules against that data to decide whether to pause or activate ads on each social target
-- Updates the state of each target in the database
-- Logs every data fetch and every action taken
+The app runs on a scheduled interval (default every 30 minutes, configurable from 5 min to 24 hours). Each run fetches weather and sports data, evaluates rules, updates target states, and logs every action.
 
 ## Automation Rules
 
@@ -29,7 +24,7 @@ The system currently implements the following automation rules:
 - Polls backend every 60 seconds, plus immediate refresh on user actions
 
 ## Testing (pytest):
-- 11 tests covering API endpoints, weather service, and sports service
+- Tests covering API endpoints, weather service, and sports service
 - Tests run against a temporary in-memory database so they never touch real data
 - External API calls are mocked to keep tests fast and deterministic
 
@@ -50,36 +45,25 @@ The system currently implements the following automation rules:
 - Python 3.10+ (for local backend development)
 
 ### Local Development
-
 #### Backend
 1. Go to the backend directory:
-
 cd backend
 
 2. Create a virtual environment:
-
 python -m venv venv
 source venv/bin/activate
 
 3. Install dependencies:
-
 pip install -r requirements.txt
 
 4. Run the application:
-
-uvicorn app.main:app --reload
-
-or
-
-python run.py
+uvicorn app.main:app --reload (or python run.py)
 
 #### Frontend
 1. Go to the frontend directory:
-
 cd frontend
 
 2. Install dependencies:
-
 npm install
 npm run build
 
